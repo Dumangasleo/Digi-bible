@@ -1,56 +1,72 @@
-# Welcome to your Expo app 👋
+# Digi Bible
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An offline, tri-lingual Bible app for Android — **English (KJV), Tagalog (Ang Dating
+Biblia 1905) and Bisaya (Cebuano Pinadayag)** — with study topics, verse highlights
+and church event reminders. Everything runs on the phone; no account, no server.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Read offline** in three languages, with book names in each language
+- **Search** all three translations at once — `faith`, `pananampalataya` or `pagtoo`
+- **Study topics** — title, description, the verses that belong to it, and
+  description blocks that explain the verses that follow
+- **Highlight words** in a verse before adding it to a topic, or later from the topic
+- **Reading history** calendar and a **verse of the day**
+- **Church schedule** with local reminders
 
-   ```bash
-   npm install
-   ```
+## Tech stack
 
-2. Start the app
+Expo SDK 57 · React Native · TypeScript · expo-router · SQLite (`expo-sqlite`, FTS5) ·
+NativeWind · Zustand · EAS Build + EAS Update
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Open the app on a phone with the **development build** installed (not Expo Go — the app
+uses native modules such as SQLite and notifications).
 
-### Other setup steps
+## Project structure
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+src/
+├── app/            Screens (expo-router routes) — compose features, no SQL
+├── features/       One folder per feature: data/ (SQL) → services/ (rules)
+│                   → hooks/ (DB binding) → ui/ (components)
+├── core/db/        Migrations, seeding, verse import
+└── shared/         Reusable UI, hooks and utilities
+scripts/            One-off tools (Bible JSON converter)
+assets/bible/       Converted verse files bundled into the app
+```
 
-## Learn more
+Database tables and columns are **PascalCase**. Schema changes go in a new block in
+`src/core/db/migrations.ts` — never edit a block that has already shipped.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Bible data
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+The verse files in `assets/bible/*.verses.json` are generated, not hand-written:
 
-## Join the community
+1. Download `KJV.json`, `TagAngBiblia.json` and `CebPinadayag.json` from
+   [scrollmapper/bible_databases](https://github.com/scrollmapper/bible_databases)
+   (`formats/json`) into `assets/bible/`
+2. Run `node scripts/convert-bible.mjs`
 
-Join our community of developers creating universal apps.
+The raw downloads are git-ignored; only the converted files are committed.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Releasing
+
+| Change | Command |
+|---|---|
+| JavaScript / TypeScript only | `eas update --channel preview --platform android --message "..."` |
+| Native — new package, icon, splash, `app.json` plugins | `eas build --platform android --profile preview` |
+
+Updates are matched to builds by a **fingerprint** runtime version: an update only
+reaches phones whose installed build has the same native code.
+
+## Credits
+
+Bible texts are in the public domain. The app logo belongs to Church of God Members
+International and is used for personal use only.
