@@ -1,23 +1,35 @@
 {
   "expo": {
-    "name": "SmartBible",
+    "name": "Digi Bible",
     "slug": "SmartBible",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+     "updates": {
+      "url": "https://u.expo.dev/8e885a36-6846-41ec-8d34-bafe06400c68"
+    },
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/digi-bible-logo.png",
     "scheme": "smartbible",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "SmartBible uses speech recognition to transcribe your spoken notes.",
+        "NSMicrophoneUsageDescription": "SmartBible uses the microphone to dictate your notes."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/digi-bible-logo.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.leyd.SmartBible"
     },
     "web": {
       "output": "static",
@@ -28,15 +40,33 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#0a0a0a",
+          "image": "./assets/images/digi-bible-logo.png",
+          "imageWidth": 250
+        }
+      ],
+      "expo-sqlite",
+      "expo-notifications",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "SmartBible uses the microphone to dictate your notes.",
+          "speechRecognitionPermission": "SmartBible uses speech recognition to transcribe your spoken notes.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8e885a36-6846-41ec-8d34-bafe06400c68"
+      }
     }
   }
 }
