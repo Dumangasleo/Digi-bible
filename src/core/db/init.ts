@@ -2,7 +2,7 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 
 import { migrateDbIfNeeded } from './migrations';
 import { BUNDLED_TRANSLATIONS } from './seed/bundledTranslations';
-import { importTranslation } from './seed/importVerses';
+import { countVerses, importTranslation } from './seed/importVerses';
 import { seedBibleIfNeeded } from './seed/seedBible';
 import { seedBookNames } from './seed/seedBookNames';
 
@@ -26,6 +26,16 @@ import { seedBookNames } from './seed/seedBookNames';
  *          lazily behind the reader. A half-imported Bible is a worse experience
  *          than a slower first launch: search would return partial results and
  *          the verse of the day would rotate over an incomplete set.
+ *
+ *          The verse count is checked *before* `load()`, so a translation that is
+ *          already imported never has its JSON parsed into memory again.
+ *
+ *          WAL housekeeping runs last. A big import grows the write-ahead log to
+ *          ~11 MB, and SQLite keeps that file at its largest size even after
+ *          checkpointing. `journal_size_limit` (per connection, so set each open)
+ *          caps what stays on disk after future checkpoints; the TRUNCATE
+ *          checkpoint shrinks the existing file now. Nothing else is reading
+ *          during init, so the checkpoint cannot be blocked.
  */
 export async function initializeDatabase(db: SQLiteDatabase): Promise<void> {
   // Per-connection and not persisted in the file, so it must run on every open —
@@ -38,8 +48,12 @@ export async function initializeDatabase(db: SQLiteDatabase): Promise<void> {
   // After the canon seed: the names point at Books and Translations rows.
   await seedBookNames(db);
 
-  // No-op until a translation is registered in bundledTranslations.ts.
-  for (const payload of BUNDLED_TRANSLATIONS) {
-    await importTranslation(db, payload);
+  for (const translation of BUNDLED_TRANSLATIONS) {
+    // Already imported → skip without ever calling load(), so its JSON stays unparsed.
+    if ((await countVerses(db, translation.code)) > 0) continue;
+    await importTranslation(db, { code: translation.code, verses: translation.load() });
   }
+
+  // Cap the WAL left on disk after checkpoints at 4 MB, and shrink it now.
+  await db.execAsync('PRAGMA journal_size_limit = 4194304; PRAGMA wal_checkpoint(TRUNCATE);');
 }

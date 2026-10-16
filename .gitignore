@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+assets/bible/TagAngBiblia.json
+assets/bible/CebPinadayag.json
+assets/bible/KJV.json
